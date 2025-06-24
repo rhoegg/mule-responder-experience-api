@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ehr-system-api="http://www.mulesoft.org/schema/mule/ehr-system-api" xmlns:emergency-response-system-api="http://www.mulesoft.org/schema/mule/emergency-response-system-api"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/emergency-response-system-api http://www.mulesoft.org/schema/mule/emergency-response-system-api/current/mule-emergency-response-system-api.xsd
+http://www.mulesoft.org/schema/mule/ehr-system-api http://www.mulesoft.org/schema/mule/ehr-system-api/current/mule-ehr-system-api.xsd">
+	<emergency-response-system-api:config name="Emergency_Response_System_API_Config" doc:name="Emergency Response System API Config" doc:id="bd8c8995-3b5b-4852-b6c8-366c1e8008fd" property_host="${emergencyResponse.host}" property_port="${emergencyResponse.port}" property_basePath="${emergencyResponse.path}" property_protocol="${emergencyResponse.protocol}" property_username="${api.client.id}" property_password="${api.client.secret}" />
+	<global-property doc:name="Global Property" doc:id="64b1366d-4201-4801-92a3-f1fd0ed926b4" name="mule.env" value="local" />
+	<configuration-properties doc:name="Configuration properties" doc:id="0ca59664-baee-4deb-8c06-3971ffaf3484" file="config/${mule.env}.yaml" />
+	<ehr-system-api:config name="EHR_System_API_Config" doc:name="EHR System API Config" doc:id="b2e5ce34-900a-46af-9440-5bc3e198920c" property_host="${ehr.host}" property_port="${ehr.port}" property_basePath="${ehr.path}" property_protocol="${ehr.protocol}" property_username="${api.client.id}" property_password="${api.client.secret}" />
+</mule>

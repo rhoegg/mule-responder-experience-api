@@ -1,0 +1,16 @@
+api:
+  client:
+    id: x
+    secret: y
+    
+emergencyResponse:
+  host: localhost
+  port: "9081"
+  path: /api
+  protocol: HTTP
+
+ehr:
+  host: localhost
+  port: "9082"
+  path: /api
+  protocol: HTTP

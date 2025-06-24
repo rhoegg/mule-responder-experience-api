@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ehr-system-api="http://www.mulesoft.org/schema/mule/ehr-system-api" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:emergency-response-system-api="http://www.mulesoft.org/schema/mule/emergency-response-system-api"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/emergency-response-system-api http://www.mulesoft.org/schema/mule/emergency-response-system-api/current/mule-emergency-response-system-api.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ehr-system-api http://www.mulesoft.org/schema/mule/ehr-system-api/current/mule-ehr-system-api.xsd">
+	<sub-flow name="reportVitals" doc:id="a3b68c75-3097-4934-9769-7bd75d70bced" >
+		<set-variable value="golden-gateway" doc:name="mock destination = Golden Gateway" doc:id="630d6e3e-2f72-4dd6-a547-007a63d2c610" variableName="destination"/>
+		<set-variable value="45" doc:name="mock EHR encounter = 45" doc:id="e6d8a5bc-ee82-4bc2-8f99-d7ae96188d53" variableName="encounter"/>
+		<logger level="INFO" doc:name="INFO" doc:id="23d81f88-d57a-46a5-a403-e26a0023914b" message="starting vital signs report" category="reportVitals"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="483091d7-630d-4a5a-bb12-a911e25e3ece" >
+			<route >
+				<ee:transform doc:name="Emergency Response Request" doc:id="f4e7c1a2-e0e8-4de3-bc70-14010c8f6363">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	emergencyResponseId: attributes.uriParams.emergencyResponseId as Number,
+	source: "manual",
+	recorded: now(),
+	patientId: 1000,
+	vitals: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<emergency-response-system-api:record-vitals doc:name="Emergency Response Vitals" doc:id="a1f6f586-18d5-4234-ac4d-b0ec19f464f1" config-ref="Emergency_Response_System_API_Config" />
+				<logger level="INFO" doc:name="INFO" doc:id="df23d8e1-10e9-4eb5-9298-c451ff46b23d" message='#["Saved emergency response vital signs: $(payload.id)"]' category="reportVitals"/>
+			</route>
+			<route >
+				<ee:transform doc:name="EHR Request" doc:id="20b5f557-beea-4309-bde7-8526a383981f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	source: "manual",
+	vitals: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<ehr-system-api:report-vital-signs doc:name="EHR" doc:id="0e68067e-b48f-4639-86d8-af1637628a7a" config-ref="EHR_System_API_Config" facility-slug="#[vars.destination]" encounter-id="#[vars.encounter]" />
+				<logger level="INFO" doc:name="INFO" doc:id="34251549-2ef3-40bb-85e0-52781f7cc45f" message='#["Saved EHR vital signs: $(payload.id), count $(sizeOf(payload.vitalSigns))"]' category="reportVitals"/>
+			</route>
+		</scatter-gather>
+		<logger level="INFO" doc:name="INFO combined" doc:id="6b493ae6-8384-4640-a446-ea9b4f73b9be" message='#[output text/plain&#10;var emergencyResultMessage = payload."0" // message field of the event at the end of route 0&#10;var ehrResultMessage = payload."1" // message field of the event at the end of route 1&#10;var ehrCount = sizeOf(ehrResultMessage.payload.vitalSigns)&#10;---&#10;"Emergency Response ID $(emergencyResultMessage.payload.id) has total number of EHR vital signs $(ehrCount)"]' category="reportVitals"/>
+		<ee:transform doc:name="response" doc:id="d2f5b0f4-84aa-409a-96ad-21640f79f86e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var emergencyResponseResultPayload = payload."0".payload
+var ehrResultPayload = payload."1".payload
+---
+{
+	emergencyResponseId: emergencyResponseResultPayload.id,
+	ehrId: ehrResultPayload.id
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

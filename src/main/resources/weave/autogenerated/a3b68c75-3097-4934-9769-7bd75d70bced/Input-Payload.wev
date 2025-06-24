@@ -1,0 +1,15 @@
+%dw 2.0
+
+type auto_a3b68c75_3097_4934_9769_7bd75d70bced_Input_Payload = {
+  bloodPressure: {
+    systolic: Number, 
+    diastolic: Number, 
+    _?: Any
+  }, 
+  bloodOxygen: Number, 
+  heartRate: Number, 
+  respiratoryRate: Number, 
+  temperature: Number, 
+  _?: Any
+}
+
