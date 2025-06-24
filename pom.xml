@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.mycompany</groupId>
+	<groupId>ec0abd5f-2b31-431b-9dc7-f20318c69809</groupId>
 	<artifactId>responder-api-impl</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>mule-application</packaging>
@@ -29,6 +29,29 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
+				<configuration>
+					<cloudhub2Deployment>
+						<muleVersion>${app.runtime}</muleVersion>
+						<businessGroupId>ec0abd5f-2b31-431b-9dc7-f20318c69809</businessGroupId>
+						<environment>Sandbox</environment>
+						<applicationName>responder-api-dev</applicationName>
+						<provider>MC</provider>
+						<target>Cloudhub-US-East-2</target>
+						<vCores>0.1</vCores>
+						<javaVersion>17</javaVersion>
+						<connectedAppClientId>${connectedApp.clientId}</connectedAppClientId>
+						<connectedAppClientSecret>${connectedApp.clientSecret}</connectedAppClientSecret>
+						<connectedAppGrantType>client_credentials</connectedAppGrantType>
+						<properties>
+							<mule.env>dev</mule.env>
+							<anypoint.platform.client_id>${anypoint.platform.client_id}</anypoint.platform.client_id>
+						</properties>
+						<secureProperties>
+							<anypoint.platform.client_secret>${anypoint.platform.client_secret}</anypoint.platform.client_secret>
+						</secureProperties>
+					</cloudhub2Deployment>
+					<classifier>mule-application</classifier>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
