@@ -1,4 +1,5 @@
 api:
+  id: "0"
   client:
     id: x
     secret: y
