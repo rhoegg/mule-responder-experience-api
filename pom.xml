@@ -48,6 +48,7 @@
 						</properties>
 						<secureProperties>
 							<anypoint.platform.client_secret>${anypoint.platform.client_secret}</anypoint.platform.client_secret>
+							<api.client.secret>${api.client.secret}</api.client.secret>
 						</secureProperties>
 					</cloudhub2Deployment>
 					<classifier>mule-application</classifier>
