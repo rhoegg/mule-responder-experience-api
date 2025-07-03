@@ -36,7 +36,7 @@ var ehrResultPayload = payload."1".payload
 output application/json
 ---
 {
-	emergencyResponseId: attributes.uriParams.emergencyResponseId as Number,
+	emergencyResponseId: attributes.uriParams.callId as Number,
 	source: "manual",
 	recorded: now(),
 	patientId: 1000,
