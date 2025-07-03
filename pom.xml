@@ -50,6 +50,12 @@
 							<anypoint.platform.client_secret>${anypoint.platform.client_secret}</anypoint.platform.client_secret>
 							<api.client.secret>${api.client.secret}</api.client.secret>
 						</secureProperties>
+						<scopeLoggingConfigurations>
+							<scopeLoggingConfiguration>
+								<scope>api</scope> <!--  category starts with this -->
+								<logLevel>DEBUG</logLevel>
+							</scopeLoggingConfiguration>
+						</scopeLoggingConfigurations>
 					</cloudhub2Deployment>
 					<classifier>mule-application</classifier>
 				</configuration>
@@ -104,7 +110,7 @@
 		<dependency>
 			<groupId>ec0abd5f-2b31-431b-9dc7-f20318c69809</groupId>
 			<artifactId>responder-api</artifactId>
-			<version>1.0.4</version>
+			<version>2.0.1</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>

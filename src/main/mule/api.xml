@@ -3,7 +3,7 @@
     <http:listener-config name="responder-api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
-    <apikit:config name="responder-api-config" api="resource::ec0abd5f-2b31-431b-9dc7-f20318c69809:responder-api:1.0.4:raml:zip:responder-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="responder-api-config" api="resource::ec0abd5f-2b31-431b-9dc7-f20318c69809:responder-api:2.0.1:raml:zip:responder-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="responder-api-main">
         <http:listener config-ref="responder-api-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
@@ -14,7 +14,8 @@
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:error-response>
         </http:listener>
-        <apikit:router config-ref="responder-api-config" />
+        <logger level="DEBUG" doc:name="DEBUG" doc:id="773d3860-f57e-4b14-94ed-f41df605d94d" message="API call #[attributes.method] #[attributes.requestPath] - vehicle #[attributes.uriParams.vehicle default 'none']" category="api"/>
+		<apikit:router config-ref="responder-api-config" />
         <error-handler>
             <on-error-propagate type="APIKIT:BAD_REQUEST">
                 <ee:transform doc:name="Transform Message">
@@ -94,15 +95,14 @@ output application/json
                     </ee:variables>
                 </ee:transform>
             </on-error-propagate>
-			<on-error-propagate enableNotifications="true" logException="false" doc:name="On Error Propagate" doc:id="387871bb-62e5-4910-a4fb-4a861ab9e58a" type="APP:API_UNAUTHORIZED">
-				<ee:transform doc:name="Status Code 502" doc:id="8377ca1e-1e7a-4643-94cd-d5917f6be5d4" >
-					<ee:message >
-					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="httpStatus" ><![CDATA[502]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
+            <on-error-propagate enableNotifications="true" logException="false" doc:name="On Error Propagate" doc:id="387871bb-62e5-4910-a4fb-4a861ab9e58a" type="APP:API_UNAUTHORIZED">
+                <ee:transform doc:name="Status Code 502" doc:id="8377ca1e-1e7a-4643-94cd-d5917f6be5d4">
+                    <ee:message />
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[502]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
         </error-handler>
     </flow>
     <flow name="responder-api-console">
@@ -142,10 +142,582 @@ output text/plain
             </ee:message>
         </ee:transform>
     </flow>
-    <flow name="post:\vehicles\(vehicleId)\emergencyResponses\(emergencyResponseId)\vital-signs:application\json:responder-api-config">
-        <flow-ref doc:name="reportVitals" doc:id="391ab2ed-d7b0-46c8-a06d-bacce9f38930" name="reportVitals" />
-        <error-handler>
-            <on-error-propagate enableNotifications="true" logException="false" doc:name="On Error Propagate" doc:id="87828b36-b7cd-4964-8c79-1f5cd6108b9b" />
-        </error-handler>
+    <flow name="post:\vehicles\(vehicleId)\calls\(callId)\vitals:application\json:responder-api-config">
+        <ee:transform doc:name="vehicleId and callId">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+                <ee:set-variable variableName="callId">attributes.uriParams.'callId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<flow-ref doc:name="reportVitals" doc:id="391ab2ed-d7b0-46c8-a06d-bacce9f38930" name="reportVitals" />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="false" doc:name="On Error Propagate" doc:id="87828b36-b7cd-4964-8c79-1f5cd6108b9b" />
+		</error-handler>
+    </flow>
+	<flow name="put:\vehicles\(vehicleId)\calls\(callId)\destination:application\json:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+                <ee:set-variable variableName="callId">attributes.uriParams.'callId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: "4523",
+  displayStatus: "On Scene - Assessing Patient",
+  statusCode: "in_progress",
+  timeInCurrentStatus: 8,
+  estimatedTimeRemaining: 20,
+  patient: {
+    fullName: "John Smith",
+    age: 67,
+    gender: "Male",
+    bloodType: "O+",
+    chiefComplaint: "Chest pain, difficulty breathing",
+    vitalTrend: "declining",
+    recentVitals: {
+      heartRate: 110,
+      bloodPressure: "160/95",
+      oxygenSaturation: 92,
+      temperature: 37.3,
+      timestamp: "2025-07-01T14:32:00Z"
+    }
+  },
+  location: {
+    address: "1234 Euclid Ave, Cleveland, OH 44115",
+    "type": "Residence",
+    coordinates: {
+      lat: 41.5012,
+      lng: -81.6815
+    },
+    distanceFromVehicle: 0.2
+  },
+  vehicle: {
+    id: "12",
+    displayName: "Cleveland Ambulance 573",
+    "type": "Ambulance",
+    currentLocation: {
+      lat: 41.5015,
+      lng: -81.682
+    }
+  },
+  destination: {
+    facilityId: "1",
+    facilityName: "Forest Heights General Hospital",
+    estimatedArrival: "2025-07-01T14:52:00Z",
+    currentCapacity: 85,
+    waitTime: 15,
+    traumaCenter: true
+  },
+  timeline: [
+    {
+      timestamp: "2025-07-01T14:15:00Z",
+      event: "Call initiated",
+      user: "Dispatch"
+    }, 
+    {
+      timestamp: "2025-07-01T14:17:00Z",
+      event: "Unit dispatched",
+      user: "Dispatch"
+    }, 
+    {
+      timestamp: "2025-07-01T14:24:00Z",
+      event: "Arrived on scene",
+      user: "EMT Johnson"
+    }
+  ],
+  priority: "HIGH",
+  emergencyType: "cardiac"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="put:\vehicles\(vehicleId)\location:application\json:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  success: true,
+  lastUpdated: "2025-07-01T14:32:00Z"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="put:\vehicles\(vehicleId)\calls\(callId)\status:application\json:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+                <ee:set-variable variableName="callId">attributes.uriParams.'callId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: "4523",
+  displayStatus: "On Scene - Assessing Patient",
+  statusCode: "in_progress",
+  timeInCurrentStatus: 8,
+  estimatedTimeRemaining: 20,
+  patient: {
+    fullName: "John Smith",
+    age: 67,
+    gender: "Male",
+    bloodType: "O+",
+    chiefComplaint: "Chest pain, difficulty breathing",
+    vitalTrend: "declining",
+    recentVitals: {
+      heartRate: 110,
+      bloodPressure: "160/95",
+      oxygenSaturation: 92,
+      temperature: 37.3,
+      timestamp: "2025-07-01T14:32:00Z"
+    }
+  },
+  location: {
+    address: "1234 Euclid Ave, Cleveland, OH 44115",
+    "type": "Residence",
+    coordinates: {
+      lat: 41.5012,
+      lng: -81.6815
+    },
+    distanceFromVehicle: 0.2
+  },
+  vehicle: {
+    id: "12",
+    displayName: "Cleveland Ambulance 573",
+    "type": "Ambulance",
+    currentLocation: {
+      lat: 41.5015,
+      lng: -81.682
+    }
+  },
+  destination: {
+    facilityId: "1",
+    facilityName: "Forest Heights General Hospital",
+    estimatedArrival: "2025-07-01T14:52:00Z",
+    currentCapacity: 85,
+    waitTime: 15,
+    traumaCenter: true
+  },
+  timeline: [
+    {
+      timestamp: "2025-07-01T14:15:00Z",
+      event: "Call initiated",
+      user: "Dispatch"
+    }, 
+    {
+      timestamp: "2025-07-01T14:17:00Z",
+      event: "Unit dispatched",
+      user: "Dispatch"
+    }, 
+    {
+      timestamp: "2025-07-01T14:24:00Z",
+      event: "Arrived on scene",
+      user: "EMT Johnson"
+    }
+  ],
+  priority: "HIGH",
+  emergencyType: "cardiac"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\vehicles\(vehicleId)\calls:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" message="get:\vehicles\(vehicleId)\calls:responder-api-config" />
+    </flow>
+	<flow name="get:\vehicles\(vehicleId)\calls\current:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: "4523",
+  displayStatus: "On Scene - Assessing Patient",
+  statusCode: "in_progress",
+  timeInCurrentStatus: 8,
+  estimatedTimeRemaining: 20,
+  patient: {
+    fullName: "John Smith",
+    age: 67,
+    gender: "Male",
+    bloodType: "O+",
+    chiefComplaint: "Chest pain, difficulty breathing",
+    vitalTrend: "declining",
+    recentVitals: {
+      heartRate: 110,
+      bloodPressure: "160/95",
+      oxygenSaturation: 92,
+      temperature: 37.3,
+      timestamp: "2025-07-01T14:32:00Z"
+    }
+  },
+  location: {
+    address: "1234 Euclid Ave, Cleveland, OH 44115",
+    "type": "Residence",
+    coordinates: {
+      lat: 41.5012,
+      lng: -81.6815
+    },
+    distanceFromVehicle: 0.2
+  },
+  vehicle: {
+    id: "12",
+    displayName: "Cleveland Ambulance 573",
+    "type": "Ambulance",
+    currentLocation: {
+      lat: 41.5015,
+      lng: -81.682
+    }
+  },
+  destination: {
+    facilityId: "1",
+    facilityName: "Forest Heights General Hospital",
+    estimatedArrival: "2025-07-01T14:52:00Z",
+    currentCapacity: 85,
+    waitTime: 15,
+    traumaCenter: true
+  },
+  timeline: [
+    {
+      timestamp: "2025-07-01T14:15:00Z",
+      event: "Call initiated",
+      user: "Dispatch"
+    }, 
+    {
+      timestamp: "2025-07-01T14:17:00Z",
+      event: "Unit dispatched",
+      user: "Dispatch"
+    }, 
+    {
+      timestamp: "2025-07-01T14:24:00Z",
+      event: "Arrived on scene",
+      user: "EMT Johnson"
+    }
+  ],
+  priority: "HIGH",
+  emergencyType: "cardiac"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\mobile\dashboard:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  vehicleStatus: {
+    id: "12",
+    displayName: "Cleveland Ambulance 573",
+    status: "BUSY",
+    lastUpdateTime: "2025-07-01T14:32:00Z"
+  },
+  shiftMetrics: {
+    callsCompleted: 3,
+    averageResponseTime: 12,
+    patientsTransported: 3,
+    currentShiftDuration: 5.5
+  }
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\vehicles\(vehicleId)\dashboard:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  vehicleStatus: {
+    id: "12",
+    displayName: "Cleveland Ambulance 573",
+    status: "BUSY",
+    lastUpdateTime: "2025-07-01T14:32:00Z"
+  },
+  shiftMetrics: {
+    callsCompleted: 3,
+    averageResponseTime: 12,
+    patientsTransported: 3,
+    currentShiftDuration: 5.5
+  }
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\facilities:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    id: "1",
+    name: "Forest Heights General Hospital",
+    "type": "Hospital",
+    city: "Cleveland",
+    state: "OH",
+    isTraumaCenter: true
+  }, 
+  {
+    id: "6",
+    name: "Steel City Memorial Hospital",
+    "type": "Hospital",
+    city: "Pittsburgh",
+    state: "PA",
+    isTraumaCenter: true
+  }
+] as Array {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<flow name="get:\vehicles\(vehicleId)\calls\(callId)\recommended-facilities:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+                <ee:set-variable variableName="callId">attributes.uriParams.'callId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    id: "1",
+    name: "Forest Heights General Hospital",
+    "type": "Hospital",
+    distance: 2.3,
+    estimatedTransportTime: 8,
+    currentLoad: {
+      availableBeds: 12,
+      totalBeds: 150,
+      occupancyPercentage: 92,
+      averageWaitTime: 45
+    },
+    capabilities: {
+      traumaLevel: 1,
+      hasCardiacCath: true,
+      hasStrokeCare: true,
+      hasPediatrics: true,
+      specialties: [
+        "Cardiology", 
+        "Neurology", 
+        "Trauma Surgery", 
+        "Pediatric Emergency"
+      ]
+    },
+    contact: {
+      emergencyPhone: "(216) 555-0100",
+      address: "2500 MetroHealth Drive, Cleveland, OH 44109"
+    },
+    suitabilityScore: 95,
+    isRecommended: true
+  }, 
+  {
+    id: "3",
+    name: "Cleveland Clinic Main Campus",
+    "type": "Hospital",
+    distance: 3.8,
+    estimatedTransportTime: 12,
+    currentLoad: {
+      availableBeds: 28,
+      totalBeds: 280,
+      occupancyPercentage: 90,
+      averageWaitTime: 35
+    },
+    capabilities: {
+      traumaLevel: 1,
+      hasCardiacCath: true,
+      hasStrokeCare: true,
+      hasPediatrics: true,
+      specialties: [
+        "Cardiac Surgery", 
+        "Neurosurgery", 
+        "Transplant", 
+        "Burn Unit"
+      ]
+    },
+    contact: {
+      emergencyPhone: "(216) 555-0200",
+      address: "9500 Euclid Avenue, Cleveland, OH 44195"
+    },
+    suitabilityScore: 88,
+    isRecommended: true
+  }
+] as Array {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\vehicles:responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+  	id: "999",
+  	displayName: "Ryan Tesla Model 3",
+  	"type": "Ambulance",
+  	status: "available",
+  	city: "Cleveland"
+  },
+  {
+    id: "12",
+    displayName: "Cleveland Ambulance 573",
+    "type": "Ambulance",
+    status: "available",
+    city: "Cleveland"
+  }, 
+  {
+    id: "15",
+    displayName: "Pittsburgh Fire Truck 218",
+    "type": "Fire Truck",
+    status: "busy",
+    city: "Pittsburgh"
+  }
+] as Array {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\vehicles\(vehicleId)\calls\(callId):responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+                <ee:set-variable variableName="callId">attributes.uriParams.'callId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: "4523",
+  displayStatus: "On Scene - Assessing Patient",
+  statusCode: "in_progress",
+  timeInCurrentStatus: 8,
+  estimatedTimeRemaining: 20,
+  patient: {
+    fullName: "John Smith",
+    age: 67,
+    gender: "Male",
+    bloodType: "O+",
+    chiefComplaint: "Chest pain, difficulty breathing",
+    vitalTrend: "declining",
+    recentVitals: {
+      heartRate: 110,
+      bloodPressure: "160/95",
+      oxygenSaturation: 92,
+      temperature: 37.3,
+      timestamp: "2025-07-01T14:32:00Z"
+    }
+  },
+  location: {
+    address: "1234 Euclid Ave, Cleveland, OH 44115",
+    "type": "Residence",
+    coordinates: {
+      lat: 41.5012,
+      lng: -81.6815
+    },
+    distanceFromVehicle: 0.2
+  },
+  vehicle: {
+    id: "12",
+    displayName: "Cleveland Ambulance 573",
+    "type": "Ambulance",
+    currentLocation: {
+      lat: 41.5015,
+      lng: -81.682
+    }
+  },
+  destination: {
+    facilityId: "1",
+    facilityName: "Forest Heights General Hospital",
+    estimatedArrival: "2025-07-01T14:52:00Z",
+    currentCapacity: 85,
+    waitTime: 15,
+    traumaCenter: true
+  },
+  timeline: [
+    {
+      timestamp: "2025-07-01T14:15:00Z",
+      event: "Call initiated",
+      user: "Dispatch"
+    }, 
+    {
+      timestamp: "2025-07-01T14:17:00Z",
+      event: "Unit dispatched",
+      user: "Dispatch"
+    }, 
+    {
+      timestamp: "2025-07-01T14:24:00Z",
+      event: "Arrived on scene",
+      user: "EMT Johnson"
+    }
+  ],
+  priority: "HIGH",
+  emergencyType: "cardiac"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\vehicles\(vehicleId):responder-api-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="vehicleId">attributes.uriParams.'vehicleId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: "12",
+  displayName: "Cleveland Ambulance 573",
+  "type": "Ambulance",
+  status: "available",
+  city: "Cleveland",
+  equipmentLevel: "ALS",
+  facilityId: "1",
+  facilityName: "Forest Heights General Hospital"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
     </flow>
 </mule>
