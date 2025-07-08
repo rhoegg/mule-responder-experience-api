@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ehr-system-api="http://www.mulesoft.org/schema/mule/ehr-system-api"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:emergency-response-system-api="http://www.mulesoft.org/schema/mule/emergency-response-system-api" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:ehr-system-api="http://www.mulesoft.org/schema/mule/ehr-system-api"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:emergency-response-system-api="http://www.mulesoft.org/schema/mule/emergency-response-system-api" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/emergency-response-system-api http://www.mulesoft.org/schema/mule/emergency-response-system-api/current/mule-emergency-response-system-api.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/ehr-system-api http://www.mulesoft.org/schema/mule/ehr-system-api/current/mule-ehr-system-api.xsd
-http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
 	<sub-flow name="reportVitals" doc:id="a3b68c75-3097-4934-9769-7bd75d70bced">
 		<set-variable value="golden-gateway" doc:name="mock destination = Golden Gateway" doc:id="630d6e3e-2f72-4dd6-a547-007a63d2c610" variableName="destination" />
 		<set-variable value="45" doc:name="mock EHR encounter = 45" doc:id="e6d8a5bc-ee82-4bc2-8f99-d7ae96188d53" variableName="encounter" />
@@ -62,6 +63,9 @@ output application/json
 				<ehr-system-api:report-vital-signs doc:name="EHR" doc:id="0e68067e-b48f-4639-86d8-af1637628a7a" config-ref="EHR_System_API_Config" facility-slug="#[vars.destination]" encounter-id="#[vars.encounter]" />
 				<logger level="INFO" doc:name="INFO" doc:id="34251549-2ef3-40bb-85e0-52781f7cc45f" message='#["Saved EHR vital signs: $(payload.id), count $(sizeOf(payload.vitalSigns))"]' category="reportVitals" />
 			</route>
+				<route >
+					<anypoint-mq:publish doc:name="vital-signs" doc:id="1d1aa1c5-4f59-463c-972d-6feab6c11f4a" config-ref="Anypoint_MQ_Config" destination="vital-signs"/>
+				</route>
 		</scatter-gather>
 			<error-handler >
 				<on-error-propagate enableNotifications="true" logException="false" doc:name="On Error Propagate" doc:id="66cb18ea-0051-4648-9027-68d0e10ecbe9" type="MULE:COMPOSITE_ROUTING">

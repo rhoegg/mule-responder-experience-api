@@ -56,6 +56,7 @@ jobs:
             -DconnectedApp.clientSecret=${{ secrets.CONNECTED_APP_CLIENT_SECRET }} \
             -Danypoint.platform.client_id=${{ vars.API_MANAGER_CLIENT_ID }} \
             -Danypoint.platform.client_secret=${{ secrets.API_MANAGER_CLIENT_SECRET }} \
+            -Dmq.clientSecret=${{ secrets.MQ_SECRET }} \
             -Dapi.client.secret=${{ secrets.API_CLIENT_SECRET }}
         env:
           CONNECTED_APP_CLIENT_ID: ${{ vars.CONNECTED_APP_CLIENT_ID }}

@@ -49,10 +49,12 @@
 						<secureProperties>
 							<anypoint.platform.client_secret>${anypoint.platform.client_secret}</anypoint.platform.client_secret>
 							<api.client.secret>${api.client.secret}</api.client.secret>
+							<mq.clientSecret>${mq.clientSecret}</mq.clientSecret>
 						</secureProperties>
 						<scopeLoggingConfigurations>
 							<scopeLoggingConfiguration>
-								<scope>api</scope> <!--  category starts with this -->
+								<scope>api</scope>
+								<!--  category starts with this -->
 								<logLevel>DEBUG</logLevel>
 							</scopeLoggingConfiguration>
 						</scopeLoggingConfigurations>
@@ -113,6 +115,12 @@
 			<version>2.0.1</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.connectors</groupId>
+			<artifactId>anypoint-mq-connector</artifactId>
+			<version>4.0.13</version>
+			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
 
