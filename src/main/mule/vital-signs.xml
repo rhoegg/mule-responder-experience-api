@@ -48,22 +48,36 @@ output application/json
 				<emergency-response-system-api:record-vitals doc:name="Emergency Response Vitals" doc:id="a1f6f586-18d5-4234-ac4d-b0ec19f464f1" config-ref="Emergency_Response_System_API_Config" />
 				<logger level="INFO" doc:name="INFO" doc:id="df23d8e1-10e9-4eb5-9298-c451ff46b23d" message='#["Saved emergency response vital signs: $(payload.id)"]' category="reportVitals" />
 			</route>
-			<route>
-				<ee:transform doc:name="EHR Request" doc:id="20b5f557-beea-4309-bde7-8526a383981f">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+<!-- 			<route> -->
+<!-- 				<ee:transform doc:name="EHR Request" doc:id="20b5f557-beea-4309-bde7-8526a383981f"> -->
+<!-- 			<ee:message> -->
+<!-- 				<ee:set-payload><![CDATA[%dw 2.0 -->
+<!-- output application/json -->
+<!-- -&#45;&#45; -->
+<!-- { -->
+<!-- 	source: "manual", -->
+<!-- 	vitals: payload -->
+<!-- }]]></ee:set-payload> -->
+<!-- 			</ee:message> -->
+<!-- 		</ee:transform> -->
+<!-- 				<ehr-system-api:report-vital-signs doc:name="EHR" doc:id="0e68067e-b48f-4639-86d8-af1637628a7a" config-ref="EHR_System_API_Config" facility-slug="#[vars.destination]" encounter-id="#[vars.encounter]" /> -->
+<!-- 				<logger level="INFO" doc:name="INFO" doc:id="34251549-2ef3-40bb-85e0-52781f7cc45f" message='#["Saved EHR vital signs: $(payload.id), count $(sizeOf(payload.vitalSigns))"]' category="reportVitals" /> -->
+<!-- 			</route> -->
+				<route >
+					<ee:transform doc:name="Transform Message" doc:id="c82dbdfc-06ef-4874-a1d0-8b0900f4dfaa" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	source: "manual",
+	callId: vars.callId,
+	destination: vars.destination,
+	encounter: vars.encounter,
+	vehicleId: vars.vehicleId,
 	vitals: payload
 }]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-				<ehr-system-api:report-vital-signs doc:name="EHR" doc:id="0e68067e-b48f-4639-86d8-af1637628a7a" config-ref="EHR_System_API_Config" facility-slug="#[vars.destination]" encounter-id="#[vars.encounter]" />
-				<logger level="INFO" doc:name="INFO" doc:id="34251549-2ef3-40bb-85e0-52781f7cc45f" message='#["Saved EHR vital signs: $(payload.id), count $(sizeOf(payload.vitalSigns))"]' category="reportVitals" />
-			</route>
-				<route >
+						</ee:message>
+					</ee:transform>
 					<anypoint-mq:publish doc:name="vital-signs" doc:id="1d1aa1c5-4f59-463c-972d-6feab6c11f4a" config-ref="Anypoint_MQ_Config" destination="vital-signs"/>
 				</route>
 		</scatter-gather>

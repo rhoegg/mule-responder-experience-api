@@ -1,0 +1,10 @@
+{
+  "heartRate": 92,
+  "bloodPressure": {
+    "systolic": 135,
+    "diastolic": 85
+  },
+  "respiratoryRate": 18,
+  "bloodOxygen": 94,
+  "temperature": 37.8
+}

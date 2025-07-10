@@ -1,8 +1,62 @@
 %dw 2.0
 
 type auto_a3b68c75_3097_4934_9769_7bd75d70bced_Output_Payload = {
-  emergencyResponseId: Number, 
-  ehrId: Number, 
+  patient: {
+    vitalTrend: "improving" | "declining" | "critical" | "stable", 
+    gender: "Male" | "Female", 
+    fullName: String, 
+    bloodType?: "B+" | "A+" | "AB+" | "B-" | "A-" | "AB-" | "O+" | "O-", 
+    chiefComplaint: String, 
+    recentVitals?: {
+      bloodPressure: String, 
+      heartRate: Number, 
+      oxygenSaturation: Number, 
+      temperature: Number, 
+      timestamp: String, 
+      _?: Any
+    }, 
+    age: Number, 
+    _?: Any
+  }, 
+  destination?: {
+    facilityId: String, 
+    currentCapacity: Number, 
+    estimatedArrival: String, 
+    facilityName: String, 
+    waitTime: Number, 
+    traumaCenter: Boolean, 
+    _?: Any
+  }, 
+  timeline: Array<{    notes?: String,     event: String,     user: String,     timestamp: String,     _?: Any  }>, 
+  displayStatus: String, 
+  location: {
+    address: String, 
+    coordinates: {
+      lng: Number, 
+      lat: Number, 
+      _?: Any
+    }, 
+    "type": String, 
+    distanceFromVehicle?: Number, 
+    _?: Any
+  }, 
+  emergencyType: "trauma" | "medical" | "other" | "fall" | "respiratory" | "stroke" | "cardiac", 
+  id: String, 
+  estimatedTimeRemaining?: Number, 
+  timeInCurrentStatus: Number, 
+  priority: "HIGH" | "MEDIUM" | "LOW" | "CRITICAL", 
+  statusCode: "in_progress" | "initiated" | "dispatched" | "cancelled" | "completed", 
+  vehicle: {
+    displayName: String, 
+    id: String, 
+    "type": "Helicopter" | "Motorcycle" | "Ambulance" | "SUV" | "Fire Truck" | "Police Car", 
+    currentLocation?: {
+      lng: Number, 
+      lat: Number, 
+      _?: Any
+    }, 
+    _?: Any
+  }, 
   _?: Any
 }
 
