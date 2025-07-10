@@ -18,11 +18,11 @@ http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/m
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 var emergencyResponseResultPayload = payload."0".payload
-var ehrResultPayload = payload."1".payload
+//var ehrResultPayload = payload."1".payload
 ---
 {
 	emergencyResponseId: emergencyResponseResultPayload.id,
-	ehrId: ehrResultPayload.id
+//	ehrId: ehrResultPayload.id
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
